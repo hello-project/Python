@@ -1,0 +1,29 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'macos-latest'
+
+steps:
+- script: git submodule update --init --recursive
+  displayName: 'Checkout all submodules'
+
+- script: brew install automake autoconf libtool gettext
+  displayName: 'Install build tools'
+
+- script: make
+  displayName: 'Build all'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)/Python.framework'
+    includeRootFolder: true
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/Python.framework-full-$(Build.BuildId).zip'
+    replaceExistingArchive: true
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: '$(Build.ArtifactStagingDirectory)/Python.framework-full-$(Build.BuildId).zip'
+    publishLocation: 'Container'

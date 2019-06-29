@@ -1,5 +1,7 @@
 BUILDDIR=$(PWD)/build
-FRAMEWORKPATH=$(PWD)/Python.framework
+FW_PREFIX=$(BUILDDIR)/Framework
+FW_PATH=$(FW_PREFIX)/Python.framework
+FW_RPATH=$(FW_PATH)/Versions/3.7
 
 SQLITE3_MANIFEST_UUID=884b4b7e502b4e991677b53971277adfaf0a04a284f8e483e2553d0f83156b50
 
@@ -11,10 +13,11 @@ python : openssl sqlite3 zlib bzip2 xz
 	cd python && LDFLAGS=-L$(BUILDDIR)/lib CFLAGS=-I$(BUILDDIR)/include MACOSX_DEPLOYMENT_TARGET=10.12 \
 			OPENSSL_INCLUDES=$(BUILDDIR)/include OPENSSL_LDFLAGS=$(BUILDDIR)/lib \
 			./configure --prefix=$(BUILDDIR) --enable-framework --without-ensurepip
-	sudo $(MAKE) -C python -j$(NUM_PROCESSORS) install
-	cp -R /Library/Frameworks/Python.framework $(PWD)/Python.framework
-	cd $(PWD)/Python.framework/Versions && mv 3.7 A
-	cd $(PWD)/Python.framework/Versions && ln -s A 3.7
+	$(MAKE) -C python -j$(NUM_PROCESSORS)
+	$(MAKE) -C python install PYTHONFRAMEWORKPREFIX=$(FW_PREFIX) PYTHONFRAMEWORKINSTALLDIR=$(FW_PATH) prefix=$(FW_RPATH)
+	cp -R $(FW_PATH) $(PWD)/Python.framework
+	#cd $(PWD)/Python.framework/Versions && mv 3.7 A
+	#cd $(PWD)/Python.framework/Versions && ln -s A 3.7
 	install_name_tool -id @executable_path/../Frameworks/Python.framework/Python $(PWD)/Python.framework/Python
 
 openssl : 
