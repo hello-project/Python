@@ -3,14 +3,24 @@
 
 Python.framework for macOS
 
-## How to use
+## Install
 
-### Use Carthage
-Add below line to your `Cartfile`:
-
+### Carthage
 ~~~
 github "zengxs/python" "py36"
 ~~~
+
+## Usage
+At the first, you should initial the python framework.
+
+~~~objc
+#import <Python/framework-init.h>
+
+PyFramework_Initialize();
+~~~
+Above code will initial the python package search path.
+
+And then, import header file `<Python/Python.h>` and use the library like in C language.
 
 ## Thanks
 Special thanks for project [python-portable-macos](https://github.com/carlosperate/python-portable-macos)
