@@ -14,16 +14,17 @@ steps:
 - script: make
   displayName: 'Build all'
 
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)/Python.framework'
-    includeRootFolder: true
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/Python.framework-full-$(Build.BuildId).zip'
-    replaceExistingArchive: true
+- script: tar -cvJf '$(Build.ArtifactStagingDirectory)/Python.framework-full-$(Build.BuildId).txz' '$(Build.SourcesDirectory)/Python.framework'
+  displayName: Make tarball for full Python.framework
+
+- script: |
+    make slim
+    tar -cvJf '$(Build.ArtifactStagingDirectory)/Python.framework-slim-$(Build.BuildId).txz' '$(Build.SourcesDirectory)/Python.framework'
+  displayName: Make tarball for slim Python.framework
 
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: '$(Build.ArtifactStagingDirectory)/Python.framework-full-$(Build.BuildId).zip'
+    ArtifactName: 'drop'
     publishLocation: 'Container'
+

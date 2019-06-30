@@ -5,9 +5,19 @@ FW_RPATH=$(FW_PATH)/Versions/3.7
 
 SQLITE3_MANIFEST_UUID=884b4b7e502b4e991677b53971277adfaf0a04a284f8e483e2553d0f83156b50
 
-.PHONY : all python openssl sqlite3 zlib bzip2 xz clean-python clean-openssl clean-sqlite3 clean-zlib clean-bzip2 clean-xz clean
+.PHONY : all slim python openssl sqlite3 zlib bzip2 xz clean-python clean-openssl clean-sqlite3 clean-zlib clean-bzip2 clean-xz clean
 
 all : python
+
+slim :
+	rm -rf $(PWD)/Python.framework/Versions/Current/bin
+	rm -rf $(PWD)/Python.framework/Versions/Current/lib/pkgconfig
+	rm -rf $(PWD)/Python.framework/Versions/Current/share
+	find $(PWD)/Python.framework/Versions/Current/lib/python3.7 | grep -E "(__pycache__|\.pyc|\.pyo$)" | xargs rm -rf
+	cd $(PWD)/Python.framework/Versions/Current/lib/python3.7 && \
+		zip -r ../python37.zip * \
+			-x lib-dynload/* -x config-3.7m-darwin/* -x turtledemo/* -x idlelib/*
+	find $(PWD)/Python.framework/Versions/Current/lib/python3.7 -depth 1 | grep -v lib-dynload | grep -v config-3.7m-darwin | xargs rm -rf
 
 python : openssl sqlite3 zlib bzip2 xz
 	cd python && LDFLAGS=-L$(BUILDDIR)/lib CFLAGS=-I$(BUILDDIR)/include MACOSX_DEPLOYMENT_TARGET=10.12 \
@@ -16,9 +26,9 @@ python : openssl sqlite3 zlib bzip2 xz
 	$(MAKE) -C python -j$(NUM_PROCESSORS)
 	$(MAKE) -C python install PYTHONFRAMEWORKPREFIX=$(FW_PREFIX) PYTHONFRAMEWORKINSTALLDIR=$(FW_PATH) prefix=$(FW_RPATH)
 	cp -R $(FW_PATH) $(PWD)/Python.framework
-	#cd $(PWD)/Python.framework/Versions && mv 3.7 A
-	#cd $(PWD)/Python.framework/Versions && ln -s A 3.7
+	cd $(PWD)/Python.framework/Versions && ln -s 3.7 A && rm Current && ln -s A Current
 	install_name_tool -id @executable_path/../Frameworks/Python.framework/Python $(PWD)/Python.framework/Python
+	install_name_tool -change /Library/Frameworks/Python.framework/Versions/3.7/Python @executable_path/../../../../Python $(FW_PATH)/Resources/Python.app/Contents/MacOS/Python
 
 openssl : 
 	# https://wiki.openssl.org/index.php/Compilation_and_Installation
